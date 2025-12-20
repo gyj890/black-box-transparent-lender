@@ -4,7 +4,7 @@
 ## The Motivation
 In the financial industry, high-accuracy machine learning models are often black boxes, meaning we can see the prediction, but we can't explain the reasoning behind it. This is a massive problem for transparency and regulatory compliance.
 
-I built **The Transparent Lender** to bridge this gap. This project demonstrates how to use a high-performance **XGBoost** model while maintaining full accountability through **SHAP (SHapley Additive exPlanations)**. It’s designed to provide the specific "Reason Codes" required by laws like the **Equal Credit Opportunity Act (ECOA)**.
+I built **The Transparent Lender** to bridge this gap. This project demonstrates how to use a high-performance **XGBoost** model while maintaining full accountability through **SHAP (SHapley Additive exPlanations)**. It’s designed to provide the specific Reason Codes required by laws like the **Equal Credit Opportunity Act (ECOA)**.
 
 ---
 
