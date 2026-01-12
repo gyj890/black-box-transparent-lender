@@ -1,0 +1,488 @@
+/* =================== VARIABLES =================== */
+:root {
+    --bg-color: #000000;
+    --card-bg: #111111;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --gold: #D4AF37;
+    --gold-dim: #8a7020;
+    --gold-glow: rgba(212, 175, 55, 0.2);
+    --border-color: #333333;
+    --success: #008000;
+    --danger: #FF0000;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* =================== GLOBAL =================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    color: var(--text-main);
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    /* FIXED: Changed from hidden to auto to allow scrolling fields */
+    overflow-y: auto; 
+    overflow-x: hidden;
+}
+
+button {
+    font-family: var(--font-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* =================== UTILITIES =================== */
+.hidden { display: none !important; }
+
+/* =================== LOGIN =================== */
+.login-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.login-box {
+    background: var(--card-bg);
+    padding: 3rem;
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 20px var(--gold-glow);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+/* =================== INPUTS =================== */
+.input-group, .form-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.password-wrapper {
+    width: 100%;
+    display: flex;
+    position: relative;
+    align-items: center;
+}
+
+input {
+    background: #000000 !important; 
+    border: 1px solid var(--border-color);
+    color: var(--gold) !important;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 15px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+#password { padding-right: 45px; }
+
+input:focus {
+    border-color: var(--gold);
+    outline: none;
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+
+#togglePassword {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gold);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    opacity: 0.5;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+/* =================== SEARCH BAR ENHANCEMENT =================== */
+.search-bar {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 40px;
+}
+
+.search-input-wrapper {
+    display: flex;
+    width: 100%;
+    gap: 15px;
+    align-items: center;
+}
+
+#app-id-search {
+    flex: 1;
+}
+
+#btn-search {
+    white-space: nowrap;
+    min-width: 100px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-weight: 500;
+}
+
+/* =================== APP LAYOUT =================== */
+#app-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--gold);
+    background: #050505;
+}
+
+.tabs {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+.tab-btn.active {
+    color: var(--gold);
+    border-bottom: 2px solid var(--gold);
+}
+
+.tab-content {
+    display: none;
+    padding: 2rem;
+    overflow: visible !important;
+}
+
+/* FIXED: Changed to flex to ensure the grid layout inside the tab works */
+.tab-content.active { 
+    display: flex; 
+    flex-direction: column; 
+}
+
+/* =================== GRID SYSTEM =================== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 3fr 1.2fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+/* =================== SIDEBAR & GAUGE =================== */
+.executive-sidebar {
+    position: sticky;
+    top: 20px; 
+    height: fit-content;
+}
+
+.sidebar-card {
+    background: #0a0a0a;
+    border: 1px solid var(--gold);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.analysis-block {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.sidebar-label {
+    font-size: 11px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    display: block;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+.gauge-wrapper {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    margin: 0 auto 10px auto;
+}
+
+/* Ensures the Chart.js canvas fits perfectly */
+#riskGauge {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.gauge-scale {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: bold;
+    margin-top: -10px;
+}
+
+#gauge-status-text {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 100%;
+    font-weight: bold;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* =================== SUMMARY & RECOMMENDATION =================== */
+.info-box {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    background: #000;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid #222;
+    border-radius: 6px;
+    color: #ddd;
+    min-height: 60px;
+    text-align: left;
+}
+
+.gold-border {
+    border-left: 4px solid var(--gold) !important;
+    background: rgba(212, 175, 55, 0.05) !important;
+}
+
+/* =================== BUTTONS =================== */
+.btn-gold {
+    background: linear-gradient(135deg, var(--gold) 0%, #b8952e 100%) !important;
+    color: #000000 !important;
+    border: none !important;
+    padding: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-gold:hover {
+    background: #f0c44b !important;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-gold-outline {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 20px;
+    border-radius: 6px;
+}
+
+#btn-global-reset {
+    background: transparent !important;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+/* =================== CHARTS =================== */
+.donut-vault-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    
+}
+.chart-wrapper {
+    display: flex;
+    position: relative;
+    align-items: center;
+    width: 200px !important;
+    height: 200px !important;
+    margin: 2rem auto;
+}
+#resultsChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-center-text {
+    position: absolute;
+    /* Reset any manual margins or padding that might be shifting it */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    text-align: center;
+    pointer-events: none; /* Allows clicks to pass through to the chart */
+    z-index: 10;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    
+}
+#chart-center-number {
+    font-size: 3rem; /* Adjust based on your larger chart size */
+    font-weight: bold;
+    color: #ffffff;
+    line-height: 1; /* Prevents vertical shifting */
+}
+
+
+
+/* =================== LEGEND =================== */
+.results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the title */
+    width: 100%;
+    padding-bottom: 60px !important;
+}
+
+.metric-header {
+    font-size: 1.5rem;
+    margin-bottom: 22px;
+    text-align: center;
+    width: 100%;
+}
+/* Dashboard Donut Card */
+.chart-card {
+    width: 300px;
+    position: relative;
+    z-index: 10;
+    overflow: visible;
+    margin: 20px auto;
+    padding: 30px;
+    border-radius: 16px;
+    overflow: visible !important;
+    border: 2px solid #D4AF37 !important;
+    background: radial-gradient(
+        circle at top,
+        #121212,
+        #000000
+    );
+
+    border: 1px solid rgba(212, 175, 55, 1.0) !important;
+
+    box-shadow: 
+        0 0 20px rgba(212, 175, 55, 0.4), 
+        0 15px 35px rgba(0, 0, 0, 0.9) !important;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.legend-centered {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+    width: 100%;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+/* 3. The Number: Give the numbers some breathing room */
+#legend-approved, #legend-rejected {
+    margin-right: 8px;
+    margin-left: 4px;
+    font-weight: 800; /* Makes the count stand out */
+}
+
+/* 4. The Dots: Make them visible squares */
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.dot.approved { 
+    background-color: var(--success); 
+    box-shadow: 0 0 10px var(--success); /* Adds that professional glow */
+}
+
+.dot.rejected { 
+    background-color: var(--danger); 
+    box-shadow: 0 0 10px var(--danger); /* Adds that professional glow */
+}
+
+#legend-approved, #legend-rejected {
+    margin-right: 8px; /* Adds space so it doesn't look like '1Approved' */
+    font-weight: 800;
+}

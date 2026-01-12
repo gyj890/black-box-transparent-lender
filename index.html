@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Box: Transparent Lender</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Essential inline styles for form layout stability */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #a0a0a0;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group input {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #000 !important;
+            color: #D4AF37;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #D4AF37;
+        }
+        /* Dashboard Chart Positioning */
+        .chart-wrapper {
+            position: relative;
+            width: 200px !important;
+            height: 200px !important;
+            margin: 0 auto;
+        }
+        .chart-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffffff;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay" class="login-container">
+        <div class="login-box">
+            <h1 class="login-title">Secure Access: Black Box Vault</h1>
+            <form id="login-form" autocomplete="new-password">
+                <div class="input-group">
+                    <label for="employeeId">Employee ID</label>
+                    <input type="text" id="employeeId" placeholder="BB-XXXX" required autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" id="togglePassword">👁</button>
+                    </div>
+                </div>
+                <button type="submit" id="btn-enter-vault" class="btn-gold">Enter Vault</button>
+                <p id="login-error" class="error-msg"></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <header class="app-header">
+            <div class="logo">Black Box: Transparent Lender</div>
+            <div class="user-info">Officer: <span id="officer-id-display"></span></div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab-group">
+                <button class="tab-btn active" data-tab="prediction">Main Portal</button>
+                <button class="tab-btn" data-tab="results">Dashboard</button>
+            </div>
+            <button id="btn-global-reset" title="Reset All Fields">
+                <span class="refresh-icon">↻</span>
+            </button>
+        </div>
+
+        <main id="tab-prediction" class="tab-content active">
+            <div class="dashboard-grid">
+                <section class="form-section">
+                    <div class="search-bar">
+                        <label for="app-id-search">Search Applicant Data</label>
+                        <div class="search-input-wrapper">
+                            <input type="text" id="app-id-search" placeholder="e.g., 1005">
+                            <button id="btn-search" class="btn-gold-outline">Search</button>
+                        </div>
+                    </div>
+                    <div class="financial-form" id="financial-form">
+                        <div id="form-fields-container" class="form-grid"></div>
+                    </div>
+                </section>
+
+                <aside class="executive-sidebar">
+                    <div class="sidebar-card">
+                        <div class="analysis-block">
+                            <h3 class="sidebar-label">Risk Assessment</h3>
+                            <div class="gauge-container">
+                                <div class="gauge-wrapper">
+                                    <canvas id="riskGauge"></canvas>
+                                    <div id="gauge-status-text">READY</div>
+                                </div>
+                                <div class="gauge-scale">
+                                    <span>LOW</span><span>MED</span><span>HIGH</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-block">
+                            <h3 class="sidebar-label">Decision Analysis</h3>
+                            <div id="decision-summary" class="info-box">
+                                System ready. Retrieve data to begin.
+                            </div>
+                        </div>
+
+                        <div class="analysis-block">
+                            <h3 class="sidebar-label">Recommendation</h3>
+                            <div id="recommendation-box" class="info-box gold-border"> 
+                                <p id="recommendation-text">Awaiting data...</p>
+                            </div>
+                        </div>
+                        
+                        <button id="btn-predict" class="btn-gold">RUN PREDICTION</button>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <main id="tab-results" class="tab-content">
+            <div class="results-container">
+                <div class="metric-header">
+                    <h2 class="dashboard-title">Total Applications</h2>
+                </div>
+                <div class="chart-card">                                                        
+                    <div class="donut-vault-container">
+                        <div class="chart-wrapper">
+                            <canvas id="resultsChart"></canvas>
+                            <div class="chart-center-text" id="chart-center-number">0</div>                  
+                        </div>
+                        <div id="custom-legend" class="legend-centered">
+                            <div class="legend-item"><span class="dot approved"></span> <span id="legend-approved">0</span> Approved</div>
+                            <div class="legend-item"><span class="dot rejected"></span> <span id="legend-rejected">0</span> Rejected</div>
+                        </div>
+                       </div>
+
+                </div>
+              </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
