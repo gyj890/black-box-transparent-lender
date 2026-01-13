@@ -6,3 +6,4 @@ python-dotenv
 databases[postgresql]
 asyncpg
 psycopg2-binary
+xgboost
