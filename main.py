@@ -12,7 +12,7 @@ load_dotenv()
 DATABASE_URL = "postgresql://postgres:3312@localhost:5432/postgres"
 
 app = FastAPI(title="Transparent Lender: Real-Time Credit Portal")
-database = Database(DATABASE_URL)
+database = os.getenv(DATABASE_URL)
 
 # Add Middleware ONCE
 app.add_middleware(
