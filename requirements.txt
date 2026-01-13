@@ -3,4 +3,6 @@ uvicorn
 pandas
 scikit-learn
 python-dotenv
-databases
+databases[postgresql]
+asyncpg
+psycopg2-binary
