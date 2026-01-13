@@ -9,11 +9,11 @@ from dotenv import load_dotenv
 # 1. SETUP & CONFIGURATION
 load_dotenv()
 # Update this with your actual PostgreSQL credentials
-DATABASE_URL = "postgresql://postgres:3312@localhost:5432/postgres"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:3312@localhost:5432/postgres")	
 
 app = FastAPI(title="Transparent Lender: Real-Time Credit Portal")
-database = os.getenv(DATABASE_URL)
-
+database = Database(DATABASE_URL)
+	
 # Add Middleware ONCE
 app.add_middleware(
     CORSMiddleware,
