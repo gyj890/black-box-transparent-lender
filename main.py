@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from databases import Database
 from dotenv import load_dotenv
+import ssl
 
 # 1. SETUP & CONFIGURATION
 load_dotenv()
@@ -12,7 +13,10 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:3312@localhost:5432/postgres")	
 
 app = FastAPI(title="Transparent Lender: Real-Time Credit Portal")
-database = Database(DATABASE_URL)
+if "localhost" not in DATABASE_URL:
+    database = Database(DATABASE_URL, ssl=True)
+else:
+    database = Database(DATABASE_URL)
 	
 # Add Middleware ONCE
 app.add_middleware(
