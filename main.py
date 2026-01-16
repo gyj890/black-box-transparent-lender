@@ -12,12 +12,17 @@ load_dotenv()
 # Update this with your actual PostgreSQL credentials
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:3312@localhost:5432/postgres")	
 
+#DATABASE CONNECTION (The SSL Fix)
 app = FastAPI(title="Transparent Lender: Real-Time Credit Portal")
 if "localhost" not in DATABASE_URL:
     database = Database(DATABASE_URL, ssl=True)
 else:
     database = Database(DATABASE_URL)
 	
+@app.get("/")
+def health_check():
+    return {"status": "alive", "message": "Lender API is running"}
+
 # Add Middleware ONCE
 app.add_middleware(
     CORSMiddleware,
