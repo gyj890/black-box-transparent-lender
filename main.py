@@ -91,23 +91,32 @@ async def predict_risk(data: dict):
         probability_array = model.predict_proba(features_only)
         probability = probability_array[0][1] 
         
-        # 5. DYNAMIC FACTOR ANALYSIS
-        # Use .get() on the clean dictionary to avoid KeyErrors
+        # 5. DYNAMIC FACTOR ANALYSIS (Enhanced)
         burden = float(clean_data.get("net_fraction_revolving_burden", 0))
         score = float(clean_data.get("external_risk_estimate_c", 0))
+        inquiries = float(clean_data.get("num_inq_last_6m", 0))
+        on_time = float(clean_data.get("percent_trades_never_delq", 0))
+        months_since_delq = float(clean_data.get("m_since_recent_delq", 0))
         
-        if burden > 50:
-            factor = "excessive revolving burden"
-        elif score < 70:
-            factor = "low credit bureau risk score"
-        else:
-            factor = "standard risk profile"
+        # Logic to find the primary driver of the result
+        if prediction == 1:  # If Rejected
+            if burden > 50:
+                factor = "excessive revolving burden (high credit card usage)"
+            elif score < 65:
+                factor = "low credit trust score from external bureaus"
+            elif inquiries > 3:
+                factor = "too many recent credit inquiries"
+            elif on_time < 90:
+                factor = "inconsistent on-time payment history"
+            elif months_since_delq < 12 and months_since_delq != 0:
+                factor = "recent delinquency recorded within the last year"
+            else:
+                factor = "high overall risk profile based on historical data"
+        else:  # If Approved
+            factor = "strong credit trust score and healthy payment behavior"
         
         return {
             "prediction": int(prediction), 
             "probability": round(float(probability) * 100, 2),
             "primary_factor": factor 
         }
-    except Exception as e:
-        print(f"CRITICAL ERROR: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Backend Error: {str(e)}")
