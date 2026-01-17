@@ -120,3 +120,7 @@ async def predict_risk(data: dict):
             "probability": round(float(probability) * 100, 2),
             "primary_factor": factor 
         }
+
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
