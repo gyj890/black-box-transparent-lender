@@ -1,6 +1,8 @@
 import os
 import joblib
 import pandas as pd
+import numpy as np
+import shap
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from databases import Database
@@ -36,6 +38,15 @@ app.add_middleware(
 try:
     model = joblib.load("credit_risk_model.pkl")
     print("Model loaded successfully.")
+
+    model_features = [
+        'external_risk_estimate_c', 'net_fraction_revolving_burden', 
+        'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq'
+    ]
+    background_data = pd.DataFrame(np.zeros((10, 5)), columns=model_features)
+    explainer = shap.KernelExplainer(model.predict_proba, background_data)
+    print("SHAP Explainer initialized.")
+
 except Exception as e:
     print(f"Error loading model: {e}")
 
@@ -46,6 +57,10 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
+
+@app.get("/")
+def health_check():
+    return {"status": "alive", "message": "Lender API is running"}
 
 # --- SEARCH ENDPOINT ---
 @app.get("/application/{app_id}")
@@ -82,10 +97,13 @@ async def get_application(app_id: int):
 
     # 5. Bundle everything for Lovable
     data["prediction"] = prediction
-    data["probability"] = probability
+    data["probability"] = round(probability * 100, 2)
     data["primary_factor"] = primary_factor
     
     return data
+except Exception as e:
+        print(f"Search Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Backend Error: {str(e)}")
 
 @app.post("/predict")
 async def predict_risk(data: dict):
