@@ -50,14 +50,42 @@ async def shutdown():
 # --- SEARCH ENDPOINT ---
 @app.get("/application/{app_id}")
 async def get_application(app_id: int):
-    # Ensure table and column names match your PostgreSQL exactly
+    # 1. Fetch data from PostgreSQL
     query = "SELECT * FROM application_master_record WHERE applicant_id = :app_id"
-    result = await database.fetch_one(query=query, values={"app_id": app_id})
-    if not result:
-        raise HTTPException(status_code=404, detail="Applicant ID not found")
+    row = await database.fetch_one(query=query, values={"app_id": app_id})
     
-    # We return the dict so JS can map it to form fields
-    return dict(result)
+    if not row:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+    
+    # 2. Convert to dictionary and prepare features for the model
+    data = dict(row)
+    
+    # We must extract only the 5 features your model was trained on
+    input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
+                      'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
+    
+    # Create a DataFrame for the model (matching your training format)
+    input_df = pd.DataFrame([data])[input_features]
+
+    # 3. Live Prediction
+    prediction = int(model.predict(input_df)[0])
+    probability = float(model.predict_proba(input_df)[0][1])
+
+    # 4. Live SHAP Explanation (The 'Why')
+    # Using the KernelExplainer you defined in your snippet
+    shap_values = explainer.shap_values(input_df)
+    
+    # Identify the top feature (Primary Factor)
+    # np.abs(shap_values).argmax(axis=1) finds the index of the most influential feature
+    top_reason_idx = np.abs(shap_values).argmax(axis=1)[0]
+    primary_factor = input_features[top_reason_idx]
+
+    # 5. Bundle everything for Lovable
+    data["prediction"] = prediction
+    data["probability"] = probability
+    data["primary_factor"] = primary_factor
+    
+    return data
 
 @app.post("/predict")
 async def predict_risk(data: dict):
