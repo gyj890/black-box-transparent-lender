@@ -58,9 +58,6 @@ async def startup():
 async def shutdown():
     await database.disconnect()
 
-@app.get("/")
-def health_check():
-    return {"status": "alive", "message": "Lender API is running"}
 
 # --- SEARCH ENDPOINT ---
 @app.get("/application/{app_id}")
@@ -101,10 +98,7 @@ async def get_application(app_id: int):
     data["primary_factor"] = primary_factor
     
     return data
-except Exception as e:
-        print(f"Search Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Backend Error: {str(e)}")
-
+ 
 @app.post("/predict")
 async def predict_risk(data: dict):
     try:
