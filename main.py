@@ -3,6 +3,7 @@ import joblib
 import pandas as pd
 import numpy as np
 import shap
+import xgboost as xgb
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from databases import Database
@@ -35,69 +36,92 @@ app.add_middleware(
 )
 
 # --- MODEL LOADING ---
+model = xgb.XGBClassifier()
+explainer = None
+
 try:
-    model = joblib.load("credit_risk_model.pkl")
-    print("Model loaded successfully.")
+    model.load_model("credit_risk_model.json")
+    print("Model loaded via JSON successfully.")
 
     model_features = [
         'external_risk_estimate_c', 'net_fraction_revolving_burden', 
         'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq'
     ]
+
+
+    model.feature_names_in_ = model_features
+
     background_data = pd.DataFrame(np.zeros((10, 5)), columns=model_features)
     explainer = shap.KernelExplainer(model.predict_proba, background_data)
     print("SHAP Explainer initialized.")
 
 except Exception as e:
-    print(f"Error loading model: {e}")
+    print(f"CRITICAL MODEL ERROR: {e}")
 
 @app.on_event("startup")
 async def startup():
-    await database.connect()
+   try:
+       await database.connect()
+       # Ping the DB to verify connection for DevOps logs
+       await database.execute("SELECT 1")
+       print("DATABASE: Connected and verified.")
+   except Exception as e:
+       print(f"DATABASE: Connection failed: {e}")
+
 
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
 
+
 # --- SEARCH ENDPOINT ---
 @app.get("/application/{app_id}")
 async def get_application(app_id: int):
-    # 1. Fetch data from PostgreSQL
-    query = "SELECT * FROM application_master_record WHERE applicant_id = :app_id"
-    row = await database.fetch_one(query=query, values={"app_id": app_id})
+    try:
+       # 1. Fetch data from PostgreSQL
+       query = "SELECT * FROM application_master_record WHERE applicant_id = :app_id"
+       row = await database.fetch_one(query=query, values={"app_id": app_id})
     
-    if not row:
-        raise HTTPException(status_code=404, detail="Applicant not found")
+       if not row:
+           raise HTTPException(status_code=404, detail="Applicant not found")
     
-    # 2. Convert to dictionary and prepare features for the model
-    data = dict(row)
+       # 2. Convert to dictionary and prepare features for the model
+       data = dict(row)
     
-    # We must extract only the 5 features your model was trained on
-    input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
+        # We must extract only the 5 features your model was trained on
+       input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
                       'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
     
-    # Create a DataFrame for the model (matching your training format)
-    input_df = pd.DataFrame([data])[input_features]
+        # Create a DataFrame for the model (matching your training format)
+       input_df = pd.DataFrame([data])[input_features]
 
-    # 3. Live Prediction
-    prediction = int(model.predict(input_df)[0])
-    probability = float(model.predict_proba(input_df)[0][1])
+       # 3. Live Prediction
+       prediction = int(model.predict(input_df)[0])
+       probability = float(model.predict_proba(input_df)[0][1])
 
-    # 4. Live SHAP Explanation (The 'Why')
-    # Using the KernelExplainer you defined in your snippet
-    shap_values = explainer.shap_values(input_df)
+       # 4. Live SHAP Explanation (The 'Why')
+       # Using the KernelExplainer you defined in your snippet
+       shap_values = explainer.shap_values(input_df)
     
-    # Identify the top feature (Primary Factor)
-    # np.abs(shap_values).argmax(axis=1) finds the index of the most influential feature
-    top_reason_idx = np.abs(shap_values).argmax(axis=1)[0]
-    primary_factor = input_features[top_reason_idx]
 
-    # 5. Bundle everything for Lovable
-    data["prediction"] = prediction
-    data["probability"] = round(probability * 100, 2)
-    data["primary_factor"] = primary_factor
+        # Handle the list returned by KernelExplainer
+       active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
+
+       # Identify the top feature (Primary Factor)
+       # np.abs(shap_values).argmax(axis=1) finds the index of the most influential feature
+       top_reason_idx = np.abs(shap_values).argmax(axis=1)[0]
+       primary_factor = input_features[top_reason_idx]
+
+       # 5. Bundle everything for Lovable
+       data["prediction"] = prediction
+       data["probability"] = round(probability * 100, 2)
+       data["primary_factor"] = primary_factor
     
-    return data
+       return data
+    except Exception as e:
+       print(f"API ERROR: {e}")
+       raise HTTPException(status_code=500, detail=str(e))
  
 @app.post("/predict")
 async def predict_risk(data: dict):
