@@ -42,6 +42,9 @@ explainer = None
 try:
     model.load_model("credit_risk_model.json")
     model._estimator_type = "classifier"
+  
+    model.n_classes_ = 2
+
     print("Model loaded via JSON successfully.")
 
     model_features = [
