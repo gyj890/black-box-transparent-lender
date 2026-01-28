@@ -41,6 +41,7 @@ explainer = None
 
 try:
     model.load_model("credit_risk_model.json")
+    model._estimator_type = "classifier"
     print("Model loaded via JSON successfully.")
 
     model_features = [
@@ -52,11 +53,13 @@ try:
     model.feature_names_in_ = model_features
 
     background_data = pd.DataFrame(np.zeros((10, 5)), columns=model_features)
-    explainer = shap.KernelExplainer(model.predict_proba, background_data)
+    explainer = shap.TreeExplainer(model)
     print("SHAP Explainer initialized.")
 
 except Exception as e:
     print(f"CRITICAL MODEL ERROR: {e}")
+
+#--- Database Startup/Shutdown-----
 
 @app.on_event("startup")
 async def startup():
@@ -84,44 +87,41 @@ async def get_application(app_id: int):
        row = await database.fetch_one(query=query, values={"app_id": app_id})
     
        if not row:
-           raise HTTPException(status_code=404, detail="Applicant not found")
-    
-       # 2. Convert to dictionary and prepare features for the model
-       data = dict(row)
-    
-        # We must extract only the 5 features your model was trained on
-       input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
-                      'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
-    
-        # Create a DataFrame for the model (matching your training format)
-       input_df = pd.DataFrame([data])[input_features]
+            raise HTTPException(status_code=404, detail="Applicant not found")
+        
+        # FIX: Normalize Neon column names to lowercase
+        raw_data = dict(row)
+        data = {k.lower(): v for k, v in raw_data.items()}
+        
+        input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
+                          'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
+        
+        # Safety check for missing columns
+        for f in input_features:
+            if f not in data:
+                data[f] = 0
+        
+        input_df = pd.DataFrame([data])[input_features]
 
-       # 3. Live Prediction
-       prediction = int(model.predict(input_df)[0])
-       probability = float(model.predict_proba(input_df)[0][1])
+        # Prediction
+        prediction = int(model.predict(input_df)[0])
+        probability = float(model.predict_proba(input_df)[0][1])
+        
+        # SHAP
+        shap_values = explainer.shap_values(input_df)
+        active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
+        
+        top_reason_idx = np.abs(active_shap).argmax(axis=1)[0]
+        primary_factor = input_features[top_reason_idx].replace('_', ' ').title()
 
-       # 4. Live SHAP Explanation (The 'Why')
-       # Using the KernelExplainer you defined in your snippet
-       shap_values = explainer.shap_values(input_df)
-    
-
-        # Handle the list returned by KernelExplainer
-       active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
-
-       # Identify the top feature (Primary Factor)
-       # np.abs(shap_values).argmax(axis=1) finds the index of the most influential feature
-       top_reason_idx = np.abs(shap_values).argmax(axis=1)[0]
-       primary_factor = input_features[top_reason_idx]
-
-       # 5. Bundle everything for Lovable
-       data["prediction"] = prediction
-       data["probability"] = round(probability * 100, 2)
-       data["primary_factor"] = primary_factor
-    
-       return data
+        data["prediction"] = prediction
+        data["probability"] = round(probability * 100, 2)
+        data["primary_factor"] = primary_factor
+        
+        return data
     except Exception as e:
-       print(f"API ERROR: {e}")
-       raise HTTPException(status_code=500, detail=str(e))
+        print(f"API ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
  
 @app.post("/predict")
 async def predict_risk(data: dict):
