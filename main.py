@@ -90,10 +90,10 @@ async def get_application(app_id: int):
             raise HTTPException(status_code=404, detail="Applicant not found")
         
         # FIX: Normalize Neon column names to lowercase
-        raw_data = dict(row)
-        data = {k.lower(): v for k, v in raw_data.items()}
+       raw_data = dict(row)
+       data = {k.lower(): v for k, v in raw_data.items()}
         
-        input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
+       input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
                           'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
         
         # Safety check for missing columns
