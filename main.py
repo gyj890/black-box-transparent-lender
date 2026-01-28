@@ -97,31 +97,31 @@ async def get_application(app_id: int):
                           'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
         
         # Safety check for missing columns
-        for f in input_features:
-            if f not in data:
-                data[f] = 0
+       for f in input_features:
+           if f not in data:
+               data[f] = 0
         
-        input_df = pd.DataFrame([data])[input_features]
+       input_df = pd.DataFrame([data])[input_features]
 
         # Prediction
-        prediction = int(model.predict(input_df)[0])
-        probability = float(model.predict_proba(input_df)[0][1])
+       prediction = int(model.predict(input_df)[0])
+       probability = float(model.predict_proba(input_df)[0][1])
         
         # SHAP
-        shap_values = explainer.shap_values(input_df)
-        active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
+       shap_values = explainer.shap_values(input_df)
+       active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
         
-        top_reason_idx = np.abs(active_shap).argmax(axis=1)[0]
-        primary_factor = input_features[top_reason_idx].replace('_', ' ').title()
+       top_reason_idx = np.abs(active_shap).argmax(axis=1)[0]
+       primary_factor = input_features[top_reason_idx].replace('_', ' ').title()
 
-        data["prediction"] = prediction
-        data["probability"] = round(probability * 100, 2)
-        data["primary_factor"] = primary_factor
+       data["prediction"] = prediction
+       data["probability"] = round(probability * 100, 2)
+       data["primary_factor"] = primary_factor
         
-        return data
+       return data
     except Exception as e:
-        print(f"API ERROR: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+       print(f"API ERROR: {e}")
+       raise HTTPException(status_code=500, detail=str(e))
  
 @app.post("/predict")
 async def predict_risk(data: dict):
