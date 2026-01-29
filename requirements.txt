@@ -2,7 +2,7 @@ fastapi
 uvicorn
 pandas
 numpy<2.0.0
-xgboost==2.0.3
+xgboost>=3.0.0
 shap
 joblib
 scikit-learn

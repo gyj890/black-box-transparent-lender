@@ -42,7 +42,6 @@ explainer = None
 try:
     model.load_model("credit_risk_model.json")
     model._estimator_type = "classifier"
-  
     model.n_classes_ = 2
 
     print("Model loaded via JSON successfully.")
@@ -55,9 +54,8 @@ try:
 
     model.feature_names_in_ = model_features
 
-    background_data = pd.DataFrame(np.zeros((10, 5)), columns=model_features)
     explainer = shap.TreeExplainer(model)
-    print("SHAP Explainer initialized.")
+    print("SHAP Explainer initialized  for XGBoost.")
 
 except Exception as e:
     print(f"CRITICAL MODEL ERROR: {e}")
