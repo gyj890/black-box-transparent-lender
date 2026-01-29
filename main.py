@@ -35,40 +35,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- MODEL LOADING ---
-model = xgb.XGBClassifier()
+# --- MODEL LOADING (The Joblib Way) ---
+model = None
 explainer = None
 
+# We keep this list because the API endpoints need it to filter columns
+model_features = [
+    'external_risk_estimate_c', 'net_fraction_revolving_burden', 
+    'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq'
+]
+
 try:
-    model.load_model("credit_risk_model.json")
-    model._estimator_type = "classifier"
-    model.n_classes_ = 2
+    # Joblib restores the FULL object, including metadata patched locally
+    model = joblib.load("credit_risk_model.joblib")
+    print("MODEL: Loaded via Joblib successfully.")
 
-    print("Model loaded via JSON successfully.")
-
-    model_features = [
-        'external_risk_estimate_c', 'net_fraction_revolving_burden', 
-        'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq'
-    ]
-
-
-    explainer = shap.TreeExplainer(model.get_booster())
-    print("MODEL: Loaded and SHAP initialized successfully")
+    # TreeExplainer works perfectly with Joblib-loaded models
+    explainer = shap.TreeExplainer(model)
+    print("SHAP: Explainer initialized.")
 
 except Exception as e:
     print(f"CRITICAL MODEL ERROR: {e}")
-
-#--- Database Startup/Shutdown-----
-
-@app.on_event("startup")
-async def startup():
-   try:
-       await database.connect()
-       # Ping the DB to verify connection for DevOps logs
-       await database.execute("SELECT 1")
-       print("DATABASE: Connected and verified.")
-   except Exception as e:
-       print(f"DATABASE: Connection failed: {e}")
 
 
 @app.on_event("shutdown")
