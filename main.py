@@ -52,10 +52,8 @@ try:
     ]
 
 
-    model.feature_names_in_ = model_features
-
-    explainer = shap.TreeExplainer(model)
-    print("SHAP Explainer initialized  for XGBoost.")
+    explainer = shap.TreeExplainer(model.get_booster())
+    print("MODEL: Loaded and SHAP initialized successfully")
 
 except Exception as e:
     print(f"CRITICAL MODEL ERROR: {e}")
@@ -78,52 +76,53 @@ async def shutdown():
     await database.disconnect()
 
 
+# ... (Keep startup/shutdown blocks as they are) ...
 
 # --- SEARCH ENDPOINT ---
 @app.get("/application/{app_id}")
 async def get_application(app_id: int):
     try:
-       # 1. Fetch data from PostgreSQL
-       query = "SELECT * FROM application_master_record WHERE applicant_id = :app_id"
-       row = await database.fetch_one(query=query, values={"app_id": app_id})
-    
-       if not row:
+        query = "SELECT * FROM application_master_record WHERE applicant_id = :app_id"
+        row = await database.fetch_one(query=query, values={"app_id": app_id})
+        
+        if not row:
             raise HTTPException(status_code=404, detail="Applicant not found")
         
-        # FIX: Normalize Neon column names to lowercase
-       raw_data = dict(row)
-       data = {k.lower(): v for k, v in raw_data.items()}
+        raw_data = dict(row)
+        data = {k.lower(): v for k, v in raw_data.items()}
         
-       input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
+        input_features = ['external_risk_estimate_c', 'net_fraction_revolving_burden', 
                           'num_inq_last_6m', 'percent_trades_never_delq', 'm_since_recent_delq']
         
-        # Safety check for missing columns
-       for f in input_features:
-           if f not in data:
-               data[f] = 0
+        for f in input_features:
+            if f not in data:
+                data[f] = 0
         
-       input_df = pd.DataFrame([data])[input_features]
+        input_df = pd.DataFrame([data])[input_features]
 
-        # Prediction
-       prediction = int(model.predict(input_df)[0])
-       probability = float(model.predict_proba(input_df)[0][1])
+        # Prediction logic
+        prediction = int(model.predict(input_df)[0])
+        probability = float(model.predict_proba(input_df)[0][1])
         
-        # SHAP
-       shap_values = explainer.shap_values(input_df)
-       active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
+        # SHAP Explanation logic
+        shap_values = explainer.shap_values(input_df)
+        active_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
         
-       top_reason_idx = np.abs(active_shap).argmax(axis=1)[0]
-       primary_factor = input_features[top_reason_idx].replace('_', ' ').title()
+        top_reason_idx = np.abs(active_shap).argmax(axis=1)[0]
+        primary_factor = input_features[top_reason_idx].replace('_', ' ').title()
 
-       data["prediction"] = prediction
-       data["probability"] = round(probability * 100, 2)
-       data["primary_factor"] = primary_factor
+        data["prediction"] = prediction
+        data["probability"] = round(probability * 100, 2)
+        data["primary_factor"] = primary_factor
         
-       return data
+        return data
     except Exception as e:
-       print(f"API ERROR: {e}")
-       raise HTTPException(status_code=500, detail=str(e))
- 
+        print(f"API ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+#----Predict Endpoint------
+
 @app.post("/predict")
 async def predict_risk(data: dict):
     try:
