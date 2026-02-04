@@ -47,7 +47,7 @@ model_features = [
 
 try:
     # Joblib restores the FULL object, including metadata patched locally
-    model = joblib.load("credit_risk_model.joblib")
+    model = joblib.load("credit_model_v2.joblib")
     print("MODEL: Loaded via Joblib successfully.")
 
     # TreeExplainer works perfectly with Joblib-loaded models
