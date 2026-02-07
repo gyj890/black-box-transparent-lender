@@ -3,6 +3,7 @@ import joblib
 import pandas as pd
 import numpy as np
 import shap
+import json
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -50,13 +51,24 @@ try:
     model = joblib.load("credit_model_v2.joblib")
     print("MODEL: Loaded via Joblib successfully.")
 
+    # Get the booster and force-fix the base_score in RAM
+    booster = model.get_booster()
+    # This overwrites the '[5.22...]' with a clean numeric string '0.522...'
+    booster.set_attr(base_score="0.52240944", _estimator_type='classifier')
+    model._estimator_type = "classifier"
+
+    
     # TreeExplainer works perfectly with Joblib-loaded models
     explainer = shap.TreeExplainer(model)
-    print("SHAP: Explainer initialized.")
+    
+    if explainer.expected_value is None:
+        raise ValueError("SHAP expected_value is empty")
+        
+    print("✅ SUCCESS: SHAP Explainer initialized and brackets bypassed!")
 
 except Exception as e:
-    print(f"CRITICAL MODEL ERROR: {e}")
-
+    print(f"CRITICAL LOADING ERROR: {e}")
+    explainer = None
 
 @app.on_event("shutdown")
 async def shutdown():
