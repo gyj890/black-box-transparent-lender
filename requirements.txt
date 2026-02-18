@@ -1,8 +1,8 @@
 shap
 joblib
-xgboost==3.1.2
+xgboost>=2.0.0
 fastapi
-uvicorn
+uvicorn[standard]
 pandas
 numpy<2.0.0
 scikit-learn
