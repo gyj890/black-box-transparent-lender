@@ -13,15 +13,24 @@ import ssl
 
 # 1. SETUP & CONFIGURATION
 load_dotenv()
-# Update this with your actual PostgreSQL credentials
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:3312@localhost:5432/postgres")	
 
-#DATABASE CONNECTION (The SSL Fix)
+# Change this logic to handle missing secrets gracefully
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    # This prevents the KeyError by not initializing the DB with an empty string
+    print("❌ ERROR: DATABASE_URL is not set. Check Hugging Face Secrets.")
+    # You can set a dummy string here just to let the app start (though DB features won't work)
+    DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+
 app = FastAPI(title="Transparent Lender: Real-Time Credit Portal")
-if "localhost" not in DATABASE_URL:
+
+# Use a cleaner check for SSL
+if "localhost" not in DATABASE_URL and "127.0.0.1" not in DATABASE_URL:
     database = Database(DATABASE_URL, ssl=True)
 else:
     database = Database(DATABASE_URL)
+
 	
 @app.get("/")
 def health_check():
