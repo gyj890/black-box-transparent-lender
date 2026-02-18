@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Black Box: Transparent Lender</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Essential inline styles for form layout stability */
@@ -60,13 +60,13 @@
             <form id="login-form" autocomplete="new-password">
                 <div class="input-group">
                     <label for="employeeId">Employee ID</label>
-                    <input type="text" id="employeeId" placeholder="BB-XXXX" required autocomplete="username">
+                    <input type="text" id="employeeId" placeholder="admin2026" required autocomplete="username">
                 </div>
                 <div class="input-group">
                     <label for="password">Password</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="new-password">
-                        <button type="button" id="togglePassword">👁</button>
+                        <input type="password" id="password" placeholder="year2026" required autocomplete="new-password">
+                        <button type="button" id="togglePassword" aria-label="Toggle Password Visibility">👁</button>
                     </div>
                 </div>
                 <button type="submit" id="btn-enter-vault" class="btn-gold">Enter Vault</button>
@@ -97,8 +97,8 @@
                     <div class="search-bar">
                         <label for="app-id-search">Search Applicant Data</label>
                         <div class="search-input-wrapper">
-                            <input type="text" id="app-id-search" placeholder="e.g., 1005">
-                            <button id="btn-search" class="btn-gold-outline">Search</button>
+                            <input type="text" id="app-id-search" placeholder="e.g., 1005" inputmode="numeric">
+                            <button type="button" id="btn-search" class="btn-gold-outline">Search</button>
                         </div>
                     </div>
                     <div class="financial-form" id="financial-form">
@@ -164,6 +164,6 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
