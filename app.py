@@ -188,3 +188,17 @@ async def predict_risk(data: dict):
     except Exception as e:
         print(f"ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Serve the static folder (CSS, JS, images)
+# Hugging Face needs this folder to exist in your repository
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Serve the main dashboard HTML
+@app.get("/")
+async def read_index():
+    return FileResponse('static/index.html')
