@@ -1,0 +1,19 @@
+# Use Python 3.11 as the base
+FROM python:3.11
+
+# Set up a new user to avoid running as root
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
+WORKDIR /app
+
+# Copy requirements and install libraries
+COPY --chown=user requirements.txt .
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+# Copy all project files
+COPY --chown=user . .
+
+# Hugging Face Spaces run on port 7860 by default
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
