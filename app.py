@@ -17,11 +17,11 @@ load_dotenv()
 # Change this logic to handle missing secrets gracefully
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
+if not DATABASE_URL or DATABASE_URL.strip() =="":
     # This prevents the KeyError by not initializing the DB with an empty string
-    print("❌ ERROR: DATABASE_URL is not set. Check Hugging Face Secrets.")
+    print("❌ ERROR: DATABASE_URL secret is not set in Hugging Face Settings!")
     # You can set a dummy string here just to let the app start (though DB features won't work)
-    DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+    DATABASE_URL = "postgresql://missing:missing@localhost/missing"
 
 app = FastAPI(title="Transparent Lender: Real-Time Credit Portal")
 
